@@ -35,7 +35,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: ghcr.io/${{ github.repository_owner.toLower() }}/express-ts-manual:latest
+          tags: ghcr.io/kushagra0402/express-ts-manual:latest
           push: false
 
   publish:
@@ -64,5 +64,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner.toLower() }}/express-ts-manual:latest
-            ghcr.io/${{ github.repository_owner.toLower() }}/express-ts-manual:${{ github.sha }}
+            ghcr.io/kushagra0402/express-ts-manual:latest
+            ghcr.io/kushagra0402/express-ts-manual:${{ github.sha }}
