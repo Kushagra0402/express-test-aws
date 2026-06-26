@@ -1,21 +1,25 @@
 import express from "express";
-import type { Application, Request, Response } from "express";
+import type { Application } from "express";
+import studentRouter from "./routes/studentRouter.js";
+import courseRouter from "./routes/courseRouter.js";
+import classRouter from "./routes/classRouter.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app: Application = express();
-const port = 3000; // The port your express server will be running on.
+const port = 3000;
 
-// Enable URL-encoded form data parsing
 app.use(express.urlencoded({ extended: true }));
-
-// Middleware to parse JSON bodies
 app.use(express.json());
+app.use("/api/students", studentRouter);
+app.use("/api/courses", courseRouter);
+app.use("/api/classes", classRouter);
 
-// Basic route
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, TypeScript + Express testing change happened or not!');
+app.get("/", (_req, res) => {
+  res.send("Hello, TypeScript + Express!");
 });
 
-// Start the server
+app.use(errorHandler);
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

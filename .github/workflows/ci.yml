@@ -67,12 +67,29 @@ jobs:
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/express-test-aws:latest
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/express-test-aws:${{ github.sha }}
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Deploy updated image to ECS
         env:
           CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
           SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
+          SERVICE_DESC=$(aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME")
+          TASK_DEF_ARN=$(echo "$SERVICE_DESC" | jq -r '.services[0].taskDefinition')
+          TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition "$TASK_DEF_ARN" --query 'taskDefinition' --output json)
+
+          echo "$TASK_DEF_JSON" | jq --arg dburl "$DATABASE_URL" '
+            .containerDefinitions |= map(
+              .environment = ((.environment // []) | map(select(.name != "DATABASE_URL")) + [{"name":"DATABASE_URL","value":$dburl}])
+            )
+            | del(.status, .revision, .registeredAt, .registeredBy, .taskDefinitionArn)
+          ' > task-def.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
+
           aws ecs update-service \
             --cluster "$CLUSTER_NAME" \
             --service "$SERVICE_NAME" \
-            --force-new-deployment
+            --task-definition "$NEW_TASK_DEF_ARN"

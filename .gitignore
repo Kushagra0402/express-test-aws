@@ -33,5 +33,14 @@ pids/
 # Docker
 .dockerignore
 
+# Prisma generated client
+/generated/
+
+# Local environment files
+.env
+
+# macOS
+.DS_Store
+
 # Generated GitHub Actions workflow settings should be tracked in repo
 # (do not ignore .github/workflows)
