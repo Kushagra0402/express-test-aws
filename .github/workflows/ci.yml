@@ -84,7 +84,7 @@ jobs:
             .containerDefinitions |= map(
               .environment = ((.environment // []) | map(select(.name != "DATABASE_URL")) + [{"name":"DATABASE_URL","value":$dburl}])
             )
-            | del(.status, .revision, .registeredAt, .registeredBy, .taskDefinitionArn)
+            | del(.status, .revision, .registeredAt, .registeredBy, .taskDefinitionArn, .requiresAttributes, .compatibilities)
           ' > task-def.json
 
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
